@@ -14,21 +14,10 @@ export const colors = {
   valueMinus: { fill: "#f08080", stroke: "#e06e6e", text: "#1c1c1c" },
 } as const;
 
-export const sizes = {
-  actor: { w: 96, h: 72 },
-  command: { w: 128, h: 128 },
-  system: { w: 128, h: 128 },
-  event: { w: 128, h: 128 },
-  read: { w: 86, h: 78 },
-  policy: { w: 132, h: 128 },
-  hotspot: { w: 96, h: 90 },
-  none: { w: 96, h: 80 },
-} as const;
-
 export const layout = {
   margin: 40,
   header: 128,
-  gap: 22,
+  gap: 36,
   branchGap: 28,
   pathGap: 56,
   labelH: 26,

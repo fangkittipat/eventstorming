@@ -1,6 +1,7 @@
-import type { Board, PathItem, Sticky, StickyKind } from "../lang/ast";
+import type { Board, PathItem, Sticky } from "../lang/ast";
 import { isBranch } from "../lang/ast";
-import { layout as L, sizes } from "../render/colors";
+import { layout as L } from "../render/colors";
+import { measureSticky } from "./measure";
 
 export interface PlacedSticky {
   sticky: Sticky;
@@ -8,6 +9,9 @@ export interface PlacedSticky {
   y: number;
   w: number;
   h: number;
+  fontSize: number;
+  lines: string[];
+  captionLines: string[];
 }
 
 export interface Arrow {
@@ -151,12 +155,22 @@ function layoutItems(items: PathItem[]): Chunk {
   };
 
   function stickyColumn(sticky: Sticky): Column {
-    const { w, h } = sizeOf(sticky.kind);
+    const metrics = measureSticky(sticky);
+    const { w, h, fontSize, lines, captionLines } = metrics;
     return {
       width: w,
       height: h,
       place(px, py) {
-        const placed = { sticky, x: px, y: py, w, h };
+        const placed: PlacedSticky = {
+          sticky,
+          x: px,
+          y: py,
+          w,
+          h,
+          fontSize,
+          lines,
+          captionLines,
+        };
         stickies.push(placed);
         return { entries: [placed], exits: [placed] };
       },
@@ -187,10 +201,6 @@ function layoutItems(items: PathItem[]): Chunk {
       },
     };
   }
-}
-
-function sizeOf(kind: StickyKind): { w: number; h: number } {
-  return sizes[kind];
 }
 
 function offsetChunk(chunk: Chunk, dx: number, dy: number) {
