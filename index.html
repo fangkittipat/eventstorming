@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EventStorm</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <h1>EventStorm</h1>
+            <p>Event Storming as code</p>
+          </div>
+        </div>
+        <label class="sample">
+          <span>Sample</span>
+          <select id="sample-select"></select>
+        </label>
+        <div class="topbar-actions">
+          <button type="button" id="btn-svg">Export SVG</button>
+          <button type="button" id="btn-png">Export PNG</button>
+          <button type="button" id="btn-copy">Copy share URL</button>
+        </div>
+      </header>
+      <main class="workspace">
+        <section class="pane editor-pane" aria-label="Storm source">
+          <div id="editor"></div>
+        </section>
+        <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" tabindex="0"></div>
+        <section class="pane board-pane" aria-label="Sticky board">
+          <div class="board-toolbar">
+            <span id="status" class="status"></span>
+            <div class="zoom">
+              <button type="button" id="btn-zoom-out" aria-label="Zoom out">−</button>
+              <button type="button" id="btn-zoom-reset">100%</button>
+              <button type="button" id="btn-zoom-in" aria-label="Zoom in">+</button>
+            </div>
+          </div>
+          <div id="board-viewport" class="board-viewport">
+            <div id="board-sizer">
+              <div id="board" class="board"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

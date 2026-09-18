@@ -1,0 +1,22 @@
+eventstorming "Place order"
+note "One event can trigger several policies in parallel."
+
+path "checkout"
+  read "Cart" : "ready to buy"
+  actor Shopper
+  command "Place order"
+  system Checkout
+  event "Order placed"
+  branch
+    policy auto "whenever order placed, reserve stock"
+    command "Reserve stock"
+    system Inventory
+    event "Stock reserved"
+  branch
+    policy person "ops checks the order"
+    actor Ops
+    read "Open orders"
+    command "Release to warehouse"
+    system Warehouse
+    event "Order released"
+  hotspot "What if stock reservation fails?"

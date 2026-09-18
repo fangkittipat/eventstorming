@@ -1,0 +1,24 @@
+eventstorming "Create client, then Create job"
+note "Read model before the command. Orange only if the fact happened."
+
+path "name is new"
+  read "Client list" : "decide to create"
+  actor Recruiter
+  command "Create client"
+  system Hiring
+  event "Client created"
+  read "Client detail" : "can post a job"
+  actor Recruiter
+  command "Create job"
+  system Hiring
+  event "Job created"
+  value+ Recruiter
+
+path "name already exists"
+  actor Recruiter
+  command "Create client"
+  system Hiring
+  none "nothing happened"
+  read "Name already exists"
+  hotspot "Unique per workspace or globally?"
+  value- Recruiter
