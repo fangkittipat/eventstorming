@@ -4,7 +4,7 @@ const MAX_SIDE = 208;
 const MAX_LINES = 4;
 
 const KIND_MIN: Record<StickyKind, { w: number; h: number }> = {
-  actor: { w: 84, h: 64 },
+  actor: { w: 72, h: 52 },
   read: { w: 78, h: 72 },
   none: { w: 84, h: 72 },
   hotspot: { w: 88, h: 80 },
@@ -60,7 +60,8 @@ export function measureSticky(sticky: Sticky): StickyMetrics {
 function fontFor(sticky: Sticky): number {
   const label = sticky.label.trim();
   const n = label.length;
-  if (sticky.kind === "actor" || sticky.kind === "read") return n > 22 ? 12 : 13;
+  if (sticky.kind === "actor") return n > 18 ? 13 : 14;
+  if (sticky.kind === "read") return n > 22 ? 12 : 13;
   if (sticky.kind === "none") return 12;
   if (n >= 42) return 14;
   if (n >= 26) return 15;

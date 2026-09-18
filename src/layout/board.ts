@@ -1,7 +1,7 @@
 import type { Board, PathItem, Sticky } from "../lang/ast";
-import { isBranch } from "../lang/ast";
+import { isBranch, isSticky } from "../lang/ast";
 import { layout as L } from "../render/colors";
-import { measureSticky } from "./measure";
+import { measureSticky, type StickyMetrics } from "./measure";
 
 export interface PlacedSticky {
   sticky: Sticky;
@@ -110,10 +110,38 @@ function layoutItems(items: PathItem[]): Chunk {
         i++;
       }
       columns.push(stackColumn(branches));
-    } else {
-      columns.push(stickyColumn(item));
-      i++;
+      continue;
     }
+
+    if (item.kind === "actor") {
+      const actors: Sticky[] = [];
+      while (i < items.length && isSticky(items[i]) && items[i].kind === "actor") {
+        actors.push(items[i] as Sticky);
+        i++;
+      }
+      const host = items[i];
+      if (host && isSticky(host)) {
+        columns.push(hostedColumn(host, actors));
+        i++;
+      } else {
+        for (const actor of actors) columns.push(stickyColumn(actor));
+      }
+      continue;
+    }
+
+    if (item.kind === "command" || item.kind === "policy") {
+      i++;
+      const actors: Sticky[] = [];
+      while (i < items.length && isSticky(items[i]) && items[i].kind === "actor") {
+        actors.push(items[i] as Sticky);
+        i++;
+      }
+      columns.push(hostedColumn(item, actors));
+      continue;
+    }
+
+    columns.push(stickyColumn(item));
+    i++;
   }
 
   const height = Math.max(...columns.map((c) => c.height), 0);
@@ -153,6 +181,72 @@ function layoutItems(items: PathItem[]): Chunk {
     entries: anchors[0]?.entries ?? [],
     exits: anchors[anchors.length - 1]?.exits ?? [],
   };
+
+  function hostedColumn(host: Sticky, actors: Sticky[]): Column {
+    const hostM = measureSticky(host);
+    const overlays: Array<{
+      actor: Sticky;
+      metrics: StickyMetrics;
+      offset: { dx: number; dy: number };
+    }> = [];
+
+    let prev: { dx: number; dy: number; w: number; h: number } | undefined;
+    for (const [index, actor] of actors.entries()) {
+      const metrics = measureSticky(actor);
+      const offset = prev
+        ? cascadeOffset(prev, actor.id, index)
+        : overlapOffset(hostM, metrics, actor.id);
+      overlays.push({ actor, metrics, offset });
+      prev = { ...offset, w: metrics.w, h: metrics.h };
+    }
+
+    let extraLeft = 0;
+    let extraTop = 0;
+    let extraRight = 0;
+    let extraBottom = 0;
+    for (const overlay of overlays) {
+      extraLeft = Math.max(extraLeft, Math.max(0, -overlay.offset.dx));
+      extraTop = Math.max(extraTop, Math.max(0, -overlay.offset.dy));
+      extraRight = Math.max(extraRight, overlay.offset.dx + overlay.metrics.w - hostM.w);
+      extraBottom = Math.max(extraBottom, overlay.offset.dy + overlay.metrics.h - hostM.h);
+    }
+
+    const width = hostM.w + extraLeft + Math.max(0, extraRight - 10);
+    const height = hostM.h + extraTop + extraBottom;
+
+    return {
+      width,
+      height,
+      place(px, py) {
+        const hostX = px + extraLeft;
+        const hostY = py + extraTop;
+        const placedHost: PlacedSticky = {
+          sticky: host,
+          x: hostX,
+          y: hostY,
+          w: hostM.w,
+          h: hostM.h,
+          fontSize: hostM.fontSize,
+          lines: hostM.lines,
+          captionLines: hostM.captionLines,
+        };
+        stickies.push(placedHost);
+        for (const overlay of [...overlays].reverse()) {
+          stickies.push({
+            sticky: overlay.actor,
+            x: hostX + overlay.offset.dx,
+            y: hostY + overlay.offset.dy,
+            w: overlay.metrics.w,
+            h: overlay.metrics.h,
+            fontSize: overlay.metrics.fontSize,
+            lines: overlay.metrics.lines,
+            captionLines: overlay.metrics.captionLines,
+          });
+        }
+        return { entries: [placedHost], exits: [placedHost] };
+      },
+    };
+  }
 
   function stickyColumn(sticky: Sticky): Column {
     const metrics = measureSticky(sticky);
@@ -201,6 +295,43 @@ function layoutItems(items: PathItem[]): Chunk {
       },
     };
   }
+}
+
+function overlapOffset(
+  host: StickyMetrics,
+  actor: StickyMetrics,
+  id: string,
+): { dx: number; dy: number } {
+  const hash = hashId(id);
+  const hangX = [0.55, 0.68, 0.48, 0.62, 0.42, 0.72][hash % 6];
+  const hangY = [0.4, 0.48, 0.32, 0.44, 0.36, 0.52][(hash >> 3) % 6];
+  const minOverlapX = Math.min(actor.w * 0.5, host.w * 0.45);
+  const minOverlapY = Math.min(actor.h * 0.42, host.h * 0.4);
+  return {
+    dx: clamp(host.w - actor.w * hangX, minOverlapX - actor.w, host.w - minOverlapX),
+    dy: clamp(host.h - actor.h * hangY, minOverlapY - actor.h, host.h - minOverlapY),
+  };
+}
+
+function cascadeOffset(
+  prev: { dx: number; dy: number; w: number; h: number },
+  id: string,
+  index: number,
+): { dx: number; dy: number } {
+  const hash = hashId(id) + index * 17;
+  const stepX = Math.max(22, prev.w * [0.32, 0.38, 0.28, 0.35][hash % 4]);
+  const stepY = Math.max(prev.h - 12, prev.h * [0.76, 0.8, 0.72, 0.78][(hash >> 2) % 4]);
+  return { dx: prev.dx + stepX, dy: prev.dy + stepY };
+}
+
+function hashId(id: string): number {
+  let hash = 0;
+  for (const ch of id) hash = (hash * 33 + ch.charCodeAt(0)) | 0;
+  return Math.abs(hash);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 function offsetChunk(chunk: Chunk, dx: number, dy: number) {
