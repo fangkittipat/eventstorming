@@ -2,8 +2,8 @@
 
 ## 0.1.10
 
-- Clicking a `.storm` file opens the paper-note board again (reads the file itself, so Cursor no longer hits Assertion Failed)
-- **Open Source** still shows the Storm text if you want the diff review
+- Clicking a `.storm` file opens the Storm source in the editor; the paper-note board is a webview beside it
+- No in-webview textarea — edit the real file
 
 ## 0.1.9
 

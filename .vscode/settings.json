@@ -3,6 +3,6 @@
     "*.storm": "eventstorm"
   },
   "workbench.editorAssociations": {
-    "*.storm": "eventstorm.boardEditor"
+    "*.storm": "default"
   }
 }
