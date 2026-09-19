@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.11
+
+- Drag, scroll, and zoom the preview board (same as the playground)
+- Preview a `.storm` file like Markdown: **EventStorm: Preview** / **Storm** (Command Palette, first-line link, status bar). Cursor’s Preview | Markdown pills are `.md` only
+- Wrap long sticky labels and grow the note when needed; keep the previous default sticky size
+- Branch arrows use independent cubic curves so they no longer loop or form a brace
+
 ## 0.1.10
 
 - Open a `.storm` file like any other source file (no textarea, no custom editor, no extra settings)

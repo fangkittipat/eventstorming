@@ -19,6 +19,7 @@ export const layout = {
   margin: 40,
   header: 128,
   gap: 36,
+  fanGap: 72,
   branchGap: 28,
   pathGap: 56,
   labelH: 26,

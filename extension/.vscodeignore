@@ -3,3 +3,5 @@ src/**
 .gitignore
 *.vsix
 images/*.svg
+images/*.html
+out/webview.js

@@ -106,11 +106,19 @@ function renderLegend(ids: SvgIds): string {
 
 function renderArrow(a: Arrow): string {
   const dx = a.x2 - a.x1;
-  if (Math.abs(dx) < 8) {
-    return `<path d="M${a.x1} ${a.y1} L${a.x2} ${a.y2}"/>`;
+  const dy = a.y2 - a.y1;
+  if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
+    return `<path d="M${pt(a.x1)} ${pt(a.y1)} L${pt(a.x2)} ${pt(a.y2)}"/>`;
   }
-  const pull = Math.max(Math.abs(dx) * 0.55, 24);
-  return `<path d="M${a.x1} ${a.y1} C${a.x1 + pull} ${a.y1}, ${a.x2 - pull} ${a.y2}, ${a.x2} ${a.y2}"/>`;
+  const dir = dx >= 0 ? 1 : -1;
+  const span = Math.abs(dx);
+  const pull = Math.min(span * 0.45, 72);
+  const peel = Math.min(Math.abs(dy) * 0.22, 32) * Math.sign(dy || 0);
+  return `<path d="M${pt(a.x1)} ${pt(a.y1)} C${pt(a.x1 + dir * pull)} ${pt(a.y1 + peel)}, ${pt(a.x2 - dir * pull)} ${pt(a.y2 - peel)}, ${pt(a.x2)} ${pt(a.y2)}"/>`;
+}
+
+function pt(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
 function renderSticky(placed: PlacedSticky, active: boolean, ids: SvgIds): string {
@@ -121,11 +129,12 @@ function renderSticky(placed: PlacedSticky, active: boolean, ids: SvgIds): strin
   const angle = tilt(sticky.id, sticky.kind);
   const activeClass = active ? " is-active" : "";
   const filter = active ? `url(#${ids.shadowActive})` : `url(#${ids.shadow})`;
+  const clipId = `${ids.shadow}-clip-${escAttr(sticky.id)}`;
   const lineHeight = fontSize + 4;
 
   const policyTag =
     sticky.kind === "policy" && sticky.policyKind
-      ? `<text x="${cx}" y="${y + 16}" font-family="${FONT}" font-size="9" font-weight="500" fill="${theme.text}" text-anchor="middle">${sticky.policyKind}</text>`
+      ? `<text x="${cx}" y="${y + 16}" font-family="${FONT}" font-size="9" font-weight="500" fill="${theme.text}" text-anchor="middle">${esc(sticky.policyKind)}</text>`
       : "";
 
   const captionBlock = captionLines.length * 13;
@@ -150,9 +159,10 @@ function renderSticky(placed: PlacedSticky, active: boolean, ids: SvgIds): strin
 
   const value = sticky.value ? renderValue(placed, ids) : "";
 
-  return `<g class="sticky${activeClass}" data-id="${sticky.id}" data-line="${sticky.line}" cursor="pointer" transform="rotate(${angle} ${cx} ${cy})">
+  return `<g class="sticky${activeClass}" data-id="${esc(sticky.id)}" data-line="${sticky.line}" cursor="pointer" transform="rotate(${angle} ${cx} ${cy})">
+    <defs><clipPath id="${clipId}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath></defs>
     <rect class="note" x="${x}" y="${y}" width="${w}" height="${h}" fill="${theme.fill}" filter="${filter}"/>
-    ${policyTag}${title}${caption}${value}
+    <g clip-path="url(#${clipId})">${policyTag}${title}${caption}</g>${value}
   </g>`;
 }
 
@@ -185,4 +195,8 @@ function esc(value: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function escAttr(value: string): string {
+  return esc(value).replace(/[^A-Za-z0-9._-]/g, "_");
 }

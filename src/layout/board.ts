@@ -54,6 +54,8 @@ interface Anchors {
 interface Column {
   width: number;
   height: number;
+  entryCount: number;
+  exitCount: number;
   place: (x: number, y: number) => Anchors;
 }
 
@@ -145,19 +147,22 @@ function layoutItems(items: PathItem[]): Chunk {
   }
 
   const height = Math.max(...columns.map((c) => c.height), 0);
-  const width =
-    columns.reduce((sum, c) => sum + c.width, 0) +
-    L.gap * Math.max(columns.length - 1, 0);
+  let width = 0;
+  for (let c = 0; c < columns.length; c++) {
+    width += columns[c].width;
+    if (c < columns.length - 1) width += columnGap(columns[c], columns[c + 1]);
+  }
 
   const stickies: PlacedSticky[] = [];
   const arrows: Arrow[] = [];
   const anchors: Anchors[] = [];
 
   let x = 0;
-  for (const col of columns) {
+  for (let c = 0; c < columns.length; c++) {
+    const col = columns[c];
     const y = (height - col.height) / 2;
     anchors.push(col.place(x, y));
-    x += col.width + L.gap;
+    if (c < columns.length - 1) x += col.width + columnGap(col, columns[c + 1]);
   }
 
   for (let c = 0; c < anchors.length - 1; c++) {
@@ -217,6 +222,8 @@ function layoutItems(items: PathItem[]): Chunk {
     return {
       width,
       height,
+      entryCount: 1,
+      exitCount: 1,
       place(px, py) {
         const hostX = px + extraLeft;
         const hostY = py + extraTop;
@@ -254,6 +261,8 @@ function layoutItems(items: PathItem[]): Chunk {
     return {
       width: w,
       height: h,
+      entryCount: 1,
+      exitCount: 1,
       place(px, py) {
         const placed: PlacedSticky = {
           sticky,
@@ -279,6 +288,8 @@ function layoutItems(items: PathItem[]): Chunk {
     return {
       width,
       height,
+      entryCount: branches.reduce((sum, b) => sum + b.entries.length, 0),
+      exitCount: branches.reduce((sum, b) => sum + b.exits.length, 0),
       place(px, py) {
         let y = py;
         const entries: PlacedSticky[] = [];
@@ -332,6 +343,10 @@ function hashId(id: string): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function columnGap(left: Column, right: Column): number {
+  return left.exitCount > 1 || right.entryCount > 1 ? L.fanGap : L.gap;
 }
 
 function offsetChunk(chunk: Chunk, dx: number, dy: number) {
