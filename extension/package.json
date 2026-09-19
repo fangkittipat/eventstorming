@@ -47,14 +47,6 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "configurationDefaults": {
-      "files.associations": {
-        "*.storm": "eventstorm"
-      },
-      "workbench.editorAssociations": {
-        "*.storm": "default"
-      }
-    },
     "markdown.markdownItPlugins": true,
     "markdown.previewStyles": ["./preview.css"],
     "commands": [

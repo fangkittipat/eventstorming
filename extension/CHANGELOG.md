@@ -2,7 +2,7 @@
 
 ## 0.1.10
 
-- Open a `.storm` file like any other source file (no textarea, no custom editor)
+- Open a `.storm` file like any other source file (no textarea, no custom editor, no extra settings)
 - Use **EventStorm: Open Preview** when you want the paper-note board beside the file
 
 ## 0.1.9
