@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8
+
+- Fix Marketplace screenshot URLs so example images load in Cursor
+
 ## 0.1.7
 
 - Marketplace listing with board screenshots, language table, and examples

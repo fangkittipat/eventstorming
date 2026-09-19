@@ -2,7 +2,7 @@
 
 Event Storming as code. Open a `.storm` file like a `.mmd` diagram: Storm source beside a live paper-note board. The same boards also render inside Markdown preview.
 
-![EventStorm editor with Storm source and sticky board](images/editor.png)
+![EventStorm editor with Storm source and sticky board](https://raw.githubusercontent.com/fangkittipat/eventstorming/main/extension/images/editor.png)
 
 ## Example
 
@@ -30,11 +30,11 @@ path "checkout"
 
 Get this board:
 
-![Place order EventStorm board](images/place-order.png)
+![Place order EventStorm board](https://raw.githubusercontent.com/fangkittipat/eventstorming/main/extension/images/place-order.png)
 
 Happy path vs reject path:
 
-![Create client EventStorm board](images/create-client.png)
+![Create client EventStorm board](https://raw.githubusercontent.com/fangkittipat/eventstorming/main/extension/images/create-client.png)
 
 ## Features
 
