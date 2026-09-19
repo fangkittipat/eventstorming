@@ -1,8 +1,27 @@
 # EventStorm
 
-Event Storming as code. Open a `.storm` file like any other source file. Use **EventStorm: Open Preview** for the paper-note board beside it. The same boards also render inside Markdown preview.
+Event Storming as code. Open a `.storm` file like any other source file. Preview the paper-note board with **EventStorm: Preview**. Edit the source with **EventStorm: Storm**. The same boards also render inside VS Code’s Markdown preview.
 
 ![EventStorm editor with Storm source and sticky board](https://raw.githubusercontent.com/fangkittipat/eventstorming/main/extension/images/editor.png)
+
+## Open Preview / Storm
+
+A `.storm` file always opens as **source** (plain text), like any other code file.
+
+Cursor’s purple **Preview | Markdown** pills exist only for `.md` files. They cannot appear for `.storm`. Use EventStorm’s own commands instead:
+
+| You want | Do this |
+|---|---|
+| See the board | Command Palette (`Cmd+Shift+P`) → **EventStorm: Preview** |
+| Edit the Storm source | Command Palette → **EventStorm: Storm** |
+| Board beside the file | **EventStorm: Open Preview to the Side** |
+
+Shortcuts while a `.storm` file is focused:
+
+- Click **Preview** on the first line of the file
+- Click **Preview** or **Storm** in the status bar (bottom right)
+
+On the board: drag to pan, scroll to pan, **Cmd/Ctrl + scroll** or **− / % / +** to zoom.
 
 ## Example
 
@@ -38,14 +57,16 @@ Happy path vs reject path:
 
 ## Features
 
-- **`.storm` editor** — split source and paper board, with pan and zoom
+- **`.storm` preview** — Command Palette **EventStorm: Preview** / **EventStorm: Storm**; pan, zoom, and wrap long sticky text
 - **Markdown preview** — `eventstorm`, `storm`, and `eventstorming` fences render next to the rest of the page
-- **Export** — SVG or PNG from the command palette, editor title bar, or board buttons
-- **Open Board Only** — stickies without the surrounding Markdown
+- **Export** — SVG or PNG from the command palette or editor title bar
 
 ## Markdown
 
-Use **Markdown: Open Preview to the Side** (`Cmd+K V`), or the EventStorm preview icon in the editor title bar.
+Storm boards in a Markdown file use VS Code’s Markdown preview, not Cursor’s **Preview | Markdown** toggle.
+
+- **Markdown: Open Preview to the Side** (`Cmd+K V`)
+- Cursor’s **Preview | Markdown** pills only special-case Mermaid, so Storm fences stay as code there
 
 ````markdown
 ```eventstorm
@@ -57,8 +78,6 @@ path "checkout"
   event "Order placed"
 ```
 ````
-
-Cursor’s **Preview | Markdown** toggle is a different renderer and only special-cases Mermaid, so Storm fences stay as code there.
 
 ## Language
 
@@ -83,8 +102,9 @@ Basic unit: **read → actor → command → aggregate → event**. Use `system`
 
 | Command | What it does |
 |---|---|
-| EventStorm: Open Preview | Markdown preview, or the `.storm` board beside the file |
-| EventStorm: Open Board Only | Stickies only |
+| EventStorm: Preview | Show the board in this editor (like Markdown preview) |
+| EventStorm: Storm | Show the `.storm` source |
+| EventStorm: Open Preview to the Side | Board in a split editor |
 | EventStorm: Export SVG / PNG | Save next to the current file |
 
 ## Install

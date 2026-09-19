@@ -1,8 +1,9 @@
 {
   "name": "eventstorm",
   "displayName": "EventStorm",
-  "description": "Edit .storm files like any other source file. Preview a paper-note board beside the editor. Also renders ```eventstorm fences in Markdown preview.",
-  "version": "0.1.10",
+  "description": "Edit .storm files like any other source file. Preview the paper-note board (pan, zoom, wrap). Also renders ```eventstorm fences in Markdown preview.",
+  "version": "0.1.11",
+  "extensionKind": ["ui", "workspace"],
   "publisher": "fangkittipat",
   "author": "fangkittipat",
   "license": "MIT",
@@ -41,25 +42,44 @@
     "onLanguage:markdown",
     "onLanguage:eventstorm",
     "onCommand:eventstorm.preview",
+    "onCommand:eventstorm.showSource",
     "onCommand:eventstorm.previewBoard",
     "onCommand:eventstorm.exportSvg",
-    "onCommand:eventstorm.exportPng"
+    "onCommand:eventstorm.exportPng",
+    "onCustomEditor:eventstorm.previewEditor"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "markdown.markdownItPlugins": true,
     "markdown.previewStyles": ["./preview.css"],
+    "customEditors": [
+      {
+        "viewType": "eventstorm.previewEditor",
+        "displayName": "Preview",
+        "selector": [{ "filenamePattern": "*.storm" }],
+        "priority": "option"
+      }
+    ],
     "commands": [
       {
         "command": "eventstorm.preview",
-        "title": "Open Preview",
+        "title": "Preview",
+        "shortTitle": "Preview",
         "category": "EventStorm",
         "icon": "$(open-preview)"
       },
       {
+        "command": "eventstorm.showSource",
+        "title": "Storm",
+        "shortTitle": "Storm",
+        "category": "EventStorm",
+        "icon": "$(go-to-file)"
+      },
+      {
         "command": "eventstorm.previewBoard",
-        "title": "Open Board Only",
-        "category": "EventStorm"
+        "title": "Open Preview to the Side",
+        "category": "EventStorm",
+        "icon": "$(split-horizontal)"
       },
       {
         "command": "eventstorm.exportSvg",
@@ -78,28 +98,28 @@
       "editor/title": [
         {
           "command": "eventstorm.preview",
-          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm",
-          "group": "navigation"
+          "when": "resourceLangId == eventstorm || resourceExtname == .storm || originalResourceLangId == eventstorm || originalResourceExtname == .storm",
+          "alt": "eventstorm.previewBoard",
+          "group": "navigation@1"
         },
         {
-          "command": "eventstorm.exportSvg",
-          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm",
-          "group": "navigation"
-        },
-        {
-          "command": "eventstorm.exportPng",
-          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm",
-          "group": "navigation"
+          "command": "eventstorm.showSource",
+          "when": "resourceLangId == eventstorm || resourceExtname == .storm || originalResourceLangId == eventstorm || originalResourceExtname == .storm || activeCustomEditorId == 'eventstorm.previewEditor'",
+          "group": "navigation@2"
         }
       ],
       "commandPalette": [
         {
           "command": "eventstorm.preview",
-          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm"
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm || activeCustomEditorId == 'eventstorm.previewEditor'"
+        },
+        {
+          "command": "eventstorm.showSource",
+          "when": "resourceExtname == .storm || eventstormPreviewActive || activeCustomEditorId == 'eventstorm.previewEditor'"
         },
         {
           "command": "eventstorm.previewBoard",
-          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm"
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm || activeCustomEditorId == 'eventstorm.previewEditor'"
         },
         {
           "command": "eventstorm.exportSvg",
@@ -108,6 +128,13 @@
         {
           "command": "eventstorm.exportPng",
           "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "eventstorm.preview",
+          "when": "resourceExtname == .storm || editorLangId == eventstorm",
+          "group": "navigation"
         }
       ],
       "explorer/context": [

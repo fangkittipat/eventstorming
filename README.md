@@ -11,7 +11,7 @@ npm run dev
 
 Open http://localhost:5173/. Type Storm on the left; the board updates on the right.
 
-The EventStorm equivalent of a `.mmd` file is **`.storm`**. Opening `samples/order-placed.storm` uses the EventStorm editor: Storm source on the left, live paper board on the right (Split / Board, pan and zoom). **EventStorm: Open Source** reopens it as plain text.
+The EventStorm equivalent of a `.mmd` file is **`.storm`**. Open `samples/order-placed.storm`, then **EventStorm: Preview** for the paper board. **EventStorm: Storm** returns to the source.
 
 ## Ask the agent
 
@@ -23,15 +23,25 @@ Examples:
 - Storm the "name already exists" path for creating a client, including a hotspot.
 - Add an `eventstorm` fence to `docs/place-order.md` for refunds.
 
-It should write a `.storm` file or a ` ```eventstorm ` fence, then you preview with **Markdown: Open Preview to the Side** (`Cmd+K V`).
+It should write a `.storm` file or a ` ```eventstorm ` fence. For a `.storm` file, **EventStorm: Preview**. For Markdown, **Markdown: Open Preview to the Side** (`Cmd+K V`).
 
 To use the same prompts in other repos, copy `.cursor/skills/eventstorm/` to `~/.cursor/skills/eventstorm/`.
+
+## Preview a `.storm` file
+
+1. Open the file (it is ordinary source).
+2. Command Palette (`Cmd+Shift+P`) → **EventStorm: Preview** — paper board.
+3. **EventStorm: Storm** — back to the source.
+
+You can also click **Preview** above the first line, or **Preview** / **Storm** in the status bar.
+
+Cursor’s **Preview | Markdown** pills are only for `.md` files and cannot be added to `.storm`.
 
 ## Markdown preview (Cursor / VS Code)
 
 `eventstorm` fences render **inside the Markdown preview**, next to the rest of the page — same idea as Mermaid.
 
-Use **Markdown: Open Preview to the Side** (`Cmd+K V`), or the EventStorm preview icon in the editor title bar. That is VS Code's Markdown preview, which our extension can hook.
+Use **Markdown: Open Preview to the Side** (`Cmd+K V`). That is VS Code's Markdown preview, which our extension can hook.
 
 Cursor's **Preview | Markdown** toggle in the editor is a different renderer. It only special-cases Mermaid, so Storm fences stay as code there. We cannot plug into that tab.
 
@@ -59,10 +69,10 @@ npm install
 npm run extension:package
 ```
 
-Then **Install from VSIX…** and pick `extension/eventstorm-0.1.8.vsix`, and reload the window.
+Then **Install from VSIX…** and pick `extension/eventstorm-0.1.11.vsix`, and reload the window.
 
 To publish: `npm run extension:publish:ovsx` (Cursor / Open VSX) and `npm run extension:publish` (VS Code Marketplace).
 
-**EventStorm: Open Board Only** shows just the sticky boards, without the surrounding Markdown.
+**EventStorm: Open Preview to the Side** shows the board in a split editor.
 
 This does **not** render `eventstorm` fences in Cursor Chat, GitHub, or Cursor's native Preview tab. Export an image from the extension instead: **EventStorm: Export SVG** or **EventStorm: Export PNG** (command palette, editor title bar, or the SVG / PNG buttons on the board). The save dialog defaults to the same folder as the `.storm` or Markdown file, so you can embed `![board](place-order.png)`.
