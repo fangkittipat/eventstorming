@@ -2,8 +2,8 @@
 
 ## 0.1.10
 
-- Clicking a `.storm` file opens the Storm source in the editor; the paper-note board is a webview beside it
-- No in-webview textarea — edit the real file
+- Open a `.storm` file like any other source file (no textarea, no custom editor)
+- Use **EventStorm: Open Preview** when you want the paper-note board beside the file
 
 ## 0.1.9
 

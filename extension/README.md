@@ -1,6 +1,6 @@
 # EventStorm
 
-Event Storming as code. Open a `.storm` file to edit the source; the paper-note board opens beside it. The same boards also render inside Markdown preview.
+Event Storming as code. Open a `.storm` file like any other source file. Use **EventStorm: Open Preview** for the paper-note board beside it. The same boards also render inside Markdown preview.
 
 ![EventStorm editor with Storm source and sticky board](https://raw.githubusercontent.com/fangkittipat/eventstorming/main/extension/images/editor.png)
 

@@ -57,12 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((event) => {
       boards.update(event.document);
     }),
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      maybeShowStormBoard(editor, boards);
-    }),
   );
-
-  maybeShowStormBoard(vscode.window.activeTextEditor, boards);
 
   return {
     extendMarkdownIt(md: MarkdownItLike) {
@@ -86,12 +81,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
-
-function maybeShowStormBoard(editor: vscode.TextEditor | undefined, boards: BoardPreview) {
-  const doc = editor?.document;
-  if (!doc || !isStormFile(doc)) return;
-  boards.show(doc, true);
-}
 
 function isStormFile(doc: vscode.TextDocument): boolean {
   return doc.languageId === "eventstorm" || doc.fileName.endsWith(".storm");

@@ -1,7 +1,7 @@
 {
   "name": "eventstorm",
   "displayName": "EventStorm",
-  "description": "Edit .storm files in the editor. A paper-note board opens beside the file. Also renders ```eventstorm fences in Markdown preview.",
+  "description": "Edit .storm files like any other source file. Preview a paper-note board beside the editor. Also renders ```eventstorm fences in Markdown preview.",
   "version": "0.1.10",
   "publisher": "fangkittipat",
   "author": "fangkittipat",
@@ -50,6 +50,9 @@
     "configurationDefaults": {
       "files.associations": {
         "*.storm": "eventstorm"
+      },
+      "workbench.editorAssociations": {
+        "*.storm": "default"
       }
     },
     "markdown.markdownItPlugins": true,
