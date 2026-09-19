@@ -8,9 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "extension:build": "esbuild extension/src/extension.ts --bundle --platform=node --format=cjs --outfile=extension/out/extension.js --external:vscode --sourcemap",
-    "extension:package": "npm run extension:build && cd extension && npx --yes @vscode/vsce package",
-    "extension:publish": "npm run extension:build && cd extension && npx --yes @vscode/vsce publish",
-    "extension:publish:ovsx": "npm run extension:build && cd extension && npx --yes ovsx publish"
+    "extension:package": "npm run extension:build && cd extension && npx --yes @vscode/vsce package --baseContentUrl https://github.com/fangkittipat/eventstorming/raw/main/extension --baseImagesUrl https://github.com/fangkittipat/eventstorming/raw/main/extension",
+    "extension:publish": "npm run extension:build && cd extension && npx --yes @vscode/vsce publish --baseContentUrl https://github.com/fangkittipat/eventstorming/raw/main/extension --baseImagesUrl https://github.com/fangkittipat/eventstorming/raw/main/extension",
+    "extension:publish:ovsx": "npm run extension:package && cd extension && npx --yes ovsx publish eventstorm-$(node -p \"require('./package.json').version\").vsix"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",

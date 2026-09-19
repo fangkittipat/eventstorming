@@ -2,7 +2,7 @@
   "name": "eventstorm",
   "displayName": "EventStorm",
   "description": "Open .storm files like .mmd: source beside a live paper-note board. Also renders ```eventstorm fences in Markdown preview.",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "publisher": "fangkittipat",
   "author": "fangkittipat",
   "license": "MIT",

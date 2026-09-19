@@ -2,3 +2,4 @@ src/**
 **/*.map
 .gitignore
 *.vsix
+images/*.svg

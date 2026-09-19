@@ -1,16 +1,12 @@
 # EventStorm
 
-Event Storming as code. Open `.storm` files like `.mmd`: Storm source beside a live paper-note board. `eventstorm` fences also render inside Markdown preview.
+Event Storming as code. Open a `.storm` file like a `.mmd` diagram: Storm source beside a live paper-note board. The same boards also render inside Markdown preview.
 
-## Install
+![EventStorm editor with Storm source and sticky board](images/editor.png)
 
-Search **EventStorm** in the Extensions view (`Cmd+Shift+X`) in Cursor or VS Code, then install `fangkittipat.eventstorm`.
+## Example
 
-Cursor uses [Open VSX](https://open-vsx.org/extension/fangkittipat/eventstorm). VS Code uses the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=fangkittipat.eventstorm).
-
-## `.storm` files
-
-The EventStorm equivalent of a `.mmd` file is **`.storm`**. Opening one uses the EventStorm editor: Storm on the left, live board on the right (Split / Board, pan and zoom). **EventStorm: Open Source** reopens it as plain text.
+Write this:
 
 ```storm
 eventstorming "Place order"
@@ -19,11 +15,35 @@ path "checkout"
   command "Place order"
   system Checkout
   event "Order placed"
+  branch
+    policy auto "whenever order placed, reserve stock"
+    command "Reserve stock"
+    system Inventory
+    event "Stock reserved"
+  branch
+    policy person "ops checks the order"
+    actor Ops
+    command "Release to warehouse"
+    system Warehouse
+    event "Order released"
 ```
 
-## Markdown preview
+Get this board:
 
-Fence languages: `eventstorm`, `storm`, `eventstorming`.
+![Place order EventStorm board](images/place-order.png)
+
+Happy path vs reject path:
+
+![Create client EventStorm board](images/create-client.png)
+
+## Features
+
+- **`.storm` editor** — split source and paper board, with pan and zoom
+- **Markdown preview** — `eventstorm`, `storm`, and `eventstorming` fences render next to the rest of the page
+- **Export** — SVG or PNG from the command palette, editor title bar, or board buttons
+- **Open Board Only** — stickies without the surrounding Markdown
+
+## Markdown
 
 Use **Markdown: Open Preview to the Side** (`Cmd+K V`), or the EventStorm preview icon in the editor title bar.
 
@@ -38,29 +58,37 @@ path "checkout"
 ```
 ````
 
-**EventStorm: Open Board Only** shows just the sticky boards, without the surrounding Markdown.
-
 Cursor’s **Preview | Markdown** toggle is a different renderer and only special-cases Mermaid, so Storm fences stay as code there.
 
-## Export
+## Language
 
-This does not render `eventstorm` fences in Cursor Chat, GitHub, or Cursor’s native Preview tab. Export an image instead: **EventStorm: Export SVG** or **EventStorm: Export PNG** (command palette, editor title bar, or the SVG / PNG buttons on the board). The save dialog defaults to the same folder as the `.storm` or Markdown file, so you can embed `![board](place-order.png)`.
+Indent the path body. Quotes are optional for a single word.
 
-## Storm
+| Keyword | Sticky | Meaning |
+|---|---|---|
+| `actor` | yellow | Person or role, immediately before the command |
+| `command` | blue | Intention, present tense |
+| `system` | pink | Thing acted on |
+| `event` | orange | Fact, past tense |
+| `read` | green | Information for a decision; caption with `: "why"` |
+| `policy auto` / `policy person` | purple | Reaction after an event |
+| `hotspot` | red | Open question |
+| `branch` | — | Parallel alternative after an event |
+| `value+` / `value-` | marker | Attach to the sticky above |
 
-Keywords, indented under a `path`:
+Basic unit: **read → actor → command → system → event**.
 
-| Keyword | Sticky |
+## Commands
+
+| Command | What it does |
 |---|---|
-| `actor` | yellow — person/role, immediately before the command |
-| `command` | blue — intention, present tense |
-| `system` | pink — thing acted on |
-| `event` | orange — fact, past tense |
-| `read` | green — information for a decision; caption with `: "why"` |
-| `policy auto` / `policy person` | purple — reaction after an event |
-| `hotspot` | red — open question |
-| `branch` | parallel alternative after an event |
+| EventStorm: Open Preview | Markdown preview, or the `.storm` board |
+| EventStorm: Open Source | Reopen a `.storm` file as plain text |
+| EventStorm: Open Board Only | Stickies only |
+| EventStorm: Export SVG / PNG | Save next to the current file |
 
-## Repository
+## Install
 
-Source, playground, and samples: [github.com/fangkittipat/eventstorming](https://github.com/fangkittipat/eventstorming)
+Search **EventStorm** in the Extensions view (`Cmd+Shift+X`) and install `fangkittipat.eventstorm`.
+
+Source, playground, and more samples: [github.com/fangkittipat/eventstorming](https://github.com/fangkittipat/eventstorming)

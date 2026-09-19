@@ -59,7 +59,7 @@ npm install
 npm run extension:package
 ```
 
-Then **Install from VSIX…** and pick `extension/eventstorm-0.1.6.vsix`, and reload the window.
+Then **Install from VSIX…** and pick `extension/eventstorm-0.1.7.vsix`, and reload the window.
 
 To publish: `npm run extension:publish:ovsx` (Cursor / Open VSX) and `npm run extension:publish` (VS Code Marketplace).
 

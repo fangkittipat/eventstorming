@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Marketplace listing with board screenshots, language table, and examples
+
 ## 0.1.6
 
 - First Marketplace-ready release
