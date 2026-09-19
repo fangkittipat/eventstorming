@@ -11,6 +11,7 @@ import type {
 
 const STICKY_KINDS = new Set<StickyKind>([
   "actor",
+  "aggregate",
   "command",
   "system",
   "event",

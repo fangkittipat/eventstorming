@@ -52,7 +52,7 @@ function hasInitiator(items: PathItem[], index: number): boolean {
     if (isBranch(item)) return true;
     if (item.kind === "actor" || item.kind === "policy") return true;
     if (item.kind === "read" || item.kind === "hotspot") continue;
-    if (item.kind === "system") continue;
+    if (item.kind === "system" || item.kind === "aggregate") continue;
     return false;
   }
   return false;
@@ -63,7 +63,12 @@ function hasPrecedingCommand(items: PathItem[], index: number): boolean {
     const item = items[i];
     if (isBranch(item)) return false;
     if (item.kind === "command") return true;
-    if (item.kind === "system" || item.kind === "hotspot" || item.kind === "none") {
+    if (
+      item.kind === "system" ||
+      item.kind === "aggregate" ||
+      item.kind === "hotspot" ||
+      item.kind === "none"
+    ) {
       continue;
     }
     if (item.kind === "event") return false;

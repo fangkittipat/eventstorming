@@ -1,0 +1,23 @@
+{
+  "scopeName": "source.eventstorm",
+  "patterns": [
+    {
+      "name": "keyword.control.eventstorm",
+      "match": "\\b(eventstorming|note|path|read|actor|aggregate|command|system|event|policy|auto|person|hotspot|none|branch)\\b"
+    },
+    {
+      "name": "keyword.operator.eventstorm",
+      "match": "value[+-]"
+    },
+    {
+      "name": "string.quoted.double.eventstorm",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [{ "name": "constant.character.escape.eventstorm", "match": "\\\\." }]
+    },
+    {
+      "name": "comment.line.colon.eventstorm",
+      "match": ":\\s*\"(?:[^\"\\\\]|\\\\.)*\""
+    }
+  ]
+}

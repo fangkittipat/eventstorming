@@ -1,8 +1,0 @@
-{
-  "files.associations": {
-    "*.storm": "eventstorm"
-  },
-  "workbench.editorAssociations": {
-    "*.storm": "eventstorm.boardEditor"
-  }
-}

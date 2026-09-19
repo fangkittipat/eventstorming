@@ -43,7 +43,7 @@ eventstorming "Place order"
 path "checkout"
   actor Shopper
   command "Place order"
-  system Checkout
+  aggregate Order
   event "Order placed"
 ```
 ````

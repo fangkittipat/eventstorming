@@ -1,5 +1,6 @@
 export type StickyKind =
   | "actor"
+  | "aggregate"
   | "command"
   | "system"
   | "event"

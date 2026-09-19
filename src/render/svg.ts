@@ -82,6 +82,7 @@ function svgIds(prefix: string): SvgIds {
 function renderLegend(ids: SvgIds): string {
   const items: Array<{ kind: StickyKind; label: string }> = [
     { kind: "actor", label: "Actor" },
+    { kind: "aggregate", label: "Aggregate" },
     { kind: "command", label: "Command" },
     { kind: "system", label: "System" },
     { kind: "event", label: "Event" },
@@ -92,7 +93,7 @@ function renderLegend(ids: SvgIds): string {
   let x = L.margin;
   const y = 82;
   const parts = items.map((item) => {
-    const c = colors[item.kind];
+    const c = colors[item.kind] ?? colors.none;
     const node = `<g>
       <rect x="${x}" y="${y}" width="14" height="14" fill="${c.fill}" filter="url(#${ids.shadow})"/>
       <text x="${x + 20}" y="${y + 11}" font-family="${FONT}" font-size="11" fill="${colors.ink}">${item.label}</text>
@@ -114,7 +115,7 @@ function renderArrow(a: Arrow): string {
 
 function renderSticky(placed: PlacedSticky, active: boolean, ids: SvgIds): string {
   const { sticky, x, y, w, h, fontSize, lines, captionLines } = placed;
-  const theme = colors[sticky.kind];
+  const theme = colors[sticky.kind] ?? colors.none;
   const cx = x + w / 2;
   const cy = y + h / 2;
   const angle = tilt(sticky.id, sticky.kind);

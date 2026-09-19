@@ -16,7 +16,7 @@ export function boardToMermaid(board: Board): string {
   }
 
   for (const kind of classes) {
-    const theme = colors[kind];
+    const theme = colors[kind] ?? colors.none;
     lines.push(`  classDef ${kind} fill:${theme.fill},stroke:#1c1c1c,color:${theme.text}`);
   }
 
