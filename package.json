@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "extension:build": "esbuild extension/src/extension.ts --bundle --platform=node --format=cjs --outfile=extension/out/extension.js --external:vscode --sourcemap",
-    "extension:package": "npm run extension:build && cd extension && npx --yes @vscode/vsce package --allow-missing-repository"
+    "extension:package": "npm run extension:build && cd extension && npx --yes @vscode/vsce package",
+    "extension:publish": "npm run extension:build && cd extension && npx --yes @vscode/vsce publish",
+    "extension:publish:ovsx": "npm run extension:build && cd extension && npx --yes ovsx publish"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",

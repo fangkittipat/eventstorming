@@ -50,7 +50,9 @@ path "checkout"
 
 ### Install the preview extension
 
-From the repo root:
+Search **EventStorm** in the Extensions view (`Cmd+Shift+X`) and install `fangkittipat.eventstorm`.
+
+From this repo, package a VSIX instead:
 
 ```bash
 npm install
@@ -58,6 +60,8 @@ npm run extension:package
 ```
 
 Then **Install from VSIX…** and pick `extension/eventstorm-0.1.6.vsix`, and reload the window.
+
+To publish: `npm run extension:publish:ovsx` (Cursor / Open VSX) and `npm run extension:publish` (VS Code Marketplace).
 
 **EventStorm: Open Board Only** shows just the sticky boards, without the surrounding Markdown.
 

@@ -4,11 +4,37 @@
   "description": "Open .storm files like .mmd: source beside a live paper-note board. Also renders ```eventstorm fences in Markdown preview.",
   "version": "0.1.6",
   "publisher": "fangkittipat",
+  "author": "fangkittipat",
   "license": "MIT",
+  "pricing": "Free",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#fff8e7",
+    "theme": "light"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fangkittipat/eventstorming.git"
+  },
+  "homepage": "https://github.com/fangkittipat/eventstorming",
+  "bugs": {
+    "url": "https://github.com/fangkittipat/eventstorming/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": ["Programming Languages", "Visualization"],
+  "keywords": [
+    "eventstorming",
+    "event-storming",
+    "ddd",
+    "domain-driven-design",
+    "markdown",
+    "storm"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run --prefix .. extension:build"
+  },
   "activationEvents": [
     "onStartupFinished",
     "workspaceContains:**/*.storm",
