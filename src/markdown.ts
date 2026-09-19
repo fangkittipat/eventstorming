@@ -19,17 +19,22 @@ export function stormSources(text: string, fileKind: "markdown" | "storm"): stri
 }
 
 export function renderStormHtml(source: string, idPrefix: string): string {
-  const compiled = compile(source, { idPrefix, xmlHeader: false });
-  const errors = compiled.diagnostics.filter((d) => d.severity === "error");
-  const errorBlock = errors.length
-    ? `<pre class="eventstorm-error"><code>${escapeHtml(
-        errors.map((d) => `line ${d.line}: ${d.message}`).join("\n"),
-      )}</code></pre>`
-    : "";
-  const board = compiled.stickyCount
-    ? `<div class="eventstorm-board">${compiled.svg}</div>`
-    : "";
-  return errorBlock + board || `<pre class="eventstorm-error"><code>Empty EventStorm board</code></pre>`;
+  try {
+    const compiled = compile(source, { idPrefix, xmlHeader: false });
+    const errors = compiled.diagnostics.filter((d) => d.severity === "error");
+    const errorBlock = errors.length
+      ? `<pre class="eventstorm-error"><code>${escapeHtml(
+          errors.map((d) => `line ${d.line}: ${d.message}`).join("\n"),
+        )}</code></pre>`
+      : "";
+    const board = compiled.stickyCount
+      ? `<div class="eventstorm-board">${compiled.svg}</div>`
+      : "";
+    return errorBlock + board || `<pre class="eventstorm-error"><code>Empty EventStorm board</code></pre>`;
+  } catch (error) {
+    const message = error instanceof Error ? error.stack ?? error.message : String(error);
+    return `<pre class="eventstorm-error"><code>${escapeHtml(message)}</code></pre>`;
+  }
 }
 
 export function renderStormDocument(text: string, fileKind: "markdown" | "storm"): string {

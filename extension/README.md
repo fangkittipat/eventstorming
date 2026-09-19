@@ -1,6 +1,6 @@
 # EventStorm
 
-Event Storming as code. Open a `.storm` file like a `.mmd` diagram: Storm source beside a live paper-note board. The same boards also render inside Markdown preview.
+Event Storming as code. Open a `.storm` file to see the paper-note board. Use **EventStorm: Open Source** for the Storm text. The same boards also render inside Markdown preview.
 
 ![EventStorm editor with Storm source and sticky board](https://raw.githubusercontent.com/fangkittipat/eventstorming/main/extension/images/editor.png)
 
@@ -13,12 +13,12 @@ eventstorming "Place order"
 path "checkout"
   actor Shopper
   command "Place order"
-  system Checkout
+  aggregate Order
   event "Order placed"
   branch
     policy auto "whenever order placed, reserve stock"
     command "Reserve stock"
-    system Inventory
+    aggregate Inventory
     event "Stock reserved"
   branch
     policy person "ops checks the order"
@@ -53,7 +53,7 @@ eventstorming "Place order"
 path "checkout"
   actor Shopper
   command "Place order"
-  system Checkout
+  aggregate Order
   event "Order placed"
 ```
 ````
@@ -68,7 +68,8 @@ Indent the path body. Quotes are optional for a single word.
 |---|---|---|
 | `actor` | yellow | Person or role, immediately before the command |
 | `command` | blue | Intention, present tense |
-| `system` | pink | Thing acted on |
+| `aggregate` | light yellow | Domain consistency boundary, between command and event |
+| `system` | pink | External system or other bounded context |
 | `event` | orange | Fact, past tense |
 | `read` | green | Information for a decision; caption with `: "why"` |
 | `policy auto` / `policy person` | purple | Reaction after an event |
@@ -76,7 +77,7 @@ Indent the path body. Quotes are optional for a single word.
 | `branch` | — | Parallel alternative after an event |
 | `value+` / `value-` | marker | Attach to the sticky above |
 
-Basic unit: **read → actor → command → system → event**.
+Basic unit: **read → actor → command → aggregate → event**. Use `system` when the thing acted on is outside this domain.
 
 ## Commands
 

@@ -5,19 +5,19 @@ path "name is new"
   read "Client list" : "decide to create"
   actor Recruiter
   command "Create client"
-  system Hiring
+  aggregate Client
   event "Client created"
   read "Client detail" : "can post a job"
   actor Recruiter
   command "Create job"
-  system Hiring
+  aggregate Job
   event "Job created"
   value+ Recruiter
 
 path "name already exists"
   actor Recruiter
   command "Create client"
-  system Hiring
+  aggregate Client
   none "nothing happened"
   read "Name already exists"
   hotspot "Unique per workspace or globally?"

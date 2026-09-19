@@ -5,12 +5,12 @@ path "checkout"
   read "Cart" : "ready to buy"
   actor Shopper
   command "Place order"
-  system Checkout
+  aggregate Order
   event "Order placed"
   branch
     policy auto "whenever order placed, reserve stock"
     command "Reserve stock"
-    system Inventory
+    aggregate Inventory
     event "Stock reserved"
   branch
     policy person "ops checks the order"

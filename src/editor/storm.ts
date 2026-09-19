@@ -6,6 +6,7 @@ const KEYWORDS = new Set([
   "path",
   "read",
   "actor",
+  "aggregate",
   "command",
   "system",
   "event",

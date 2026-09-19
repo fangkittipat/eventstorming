@@ -31,12 +31,12 @@ path "happy path"
   read "Cart" : "ready to buy"
   actor Shopper
   command "Place order"
-  system Checkout
+  aggregate Order
   event "Order placed"
   branch
     policy auto "whenever order placed, reserve stock"
     command "Reserve stock"
-    system Inventory
+    aggregate Inventory
     event "Stock reserved"
   branch
     policy person "ops checks the order"
@@ -54,7 +54,8 @@ Keywords (indent the path body):
 |---|---|---|
 | `actor` | yellow | Person/role. Put immediately before the command (or after `policy person`). Several actors cascade. |
 | `command` | blue | Intention, present tense. Needs an actor or policy before it. |
-| `system` | pink | Thing acted on. |
+| `aggregate` | light yellow | Domain consistency boundary that handles the command. Sit it between command and event. |
+| `system` | pink | External system or other bounded context. |
 | `event` | orange | Fact, past tense. Needs a command before it. |
 | `read` | green | Information for a decision. Caption with `: "why they look"`. Sit it before actor/command. |
 | `policy auto` | purple | Automatic reaction to an event. |
@@ -68,7 +69,7 @@ Quotes optional for a single word (`actor Shopper`). Use quotes for phrases.
 
 ## Modelling rules
 
-1. Basic unit: **read → actor → command → system → event**.
+1. Basic unit: **read → actor → command → aggregate → event**. Use `system` (pink) when the thing acted on is outside this domain.
 2. After an event, ask "does this trigger a policy?" If several independent reactions, one `branch` per policy.
 3. Events are facts that happened. Commands are intentions. Do not mix.
 4. Surface ambiguity as `hotspot`, do not invent a resolution.

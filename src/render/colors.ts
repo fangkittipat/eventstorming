@@ -3,6 +3,7 @@ export const colors = {
   ink: "#1c1c1c",
   muted: "#6b6b6b",
   actor: { fill: "#fff176", stroke: "#e6d85c", text: "#1c1c1c" },
+  aggregate: { fill: "#fff9c4", stroke: "#efe08a", text: "#1c1c1c" },
   command: { fill: "#7ecbff", stroke: "#5eb6f0", text: "#1c1c1c" },
   event: { fill: "#ffb04a", stroke: "#f09a32", text: "#1c1c1c" },
   read: { fill: "#c5e063", stroke: "#b3d14f", text: "#1c1c1c" },

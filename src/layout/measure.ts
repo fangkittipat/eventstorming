@@ -10,6 +10,7 @@ const KIND_MIN: Record<StickyKind, { w: number; h: number }> = {
   hotspot: { w: 88, h: 80 },
   command: { w: 96, h: 96 },
   event: { w: 96, h: 96 },
+  aggregate: { w: 96, h: 96 },
   system: { w: 96, h: 96 },
   policy: { w: 104, h: 96 },
 };
@@ -44,7 +45,7 @@ export function measureSticky(sticky: Sticky): StickyMetrics {
   let w = Math.ceil(textW + padX * 2);
   let h = Math.ceil(padY * 2 + policyH + lines.length * lineH + captionH + valueH);
 
-  const min = KIND_MIN[sticky.kind];
+  const min = KIND_MIN[sticky.kind] ?? KIND_MIN.none;
   w = clamp(w, min.w, MAX_SIDE);
   h = clamp(h, min.h, MAX_SIDE);
 

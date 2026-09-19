@@ -53,11 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
       if (target.path.endsWith(".storm")) {
-        const doc =
-          vscode.workspace.textDocuments.find((d) => d.uri.toString() === target.toString()) ??
-          (await vscode.workspace.openTextDocument(target));
-        await vscode.window.showTextDocument(doc, { preview: false, preserveFocus: false });
-        boards.show(doc, true);
+        await vscode.commands.executeCommand("vscode.openWith", target, EDITOR_ID);
         return;
       }
       await vscode.commands.executeCommand("markdown.showPreviewToSide");
@@ -75,12 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((event) => {
       boards.update(event.document);
     }),
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      maybeShowStormBoard(editor, boards);
-    }),
   );
-
-  maybeShowStormBoard(vscode.window.activeTextEditor, boards);
 
   return {
     extendMarkdownIt(md: MarkdownItLike) {
@@ -114,12 +105,6 @@ function activeStormUri(): vscode.Uri | undefined {
   return undefined;
 }
 
-function maybeShowStormBoard(editor: vscode.TextEditor | undefined, boards: BoardPreview) {
-  const doc = editor?.document;
-  if (!doc || !isStormFile(doc)) return;
-  boards.show(doc, true);
-}
-
 function isStormFile(doc: vscode.TextDocument): boolean {
   return doc.languageId === "eventstorm" || doc.fileName.endsWith(".storm");
 }
@@ -128,59 +113,133 @@ function fileKind(doc: vscode.TextDocument): "markdown" | "storm" {
   return isStormFile(doc) ? "storm" : "markdown";
 }
 
-class StormEditorProvider implements vscode.CustomTextEditorProvider {
+const utf8 = new TextDecoder();
+const utf8Out = new TextEncoder();
+
+class StormDocument implements vscode.CustomDocument {
+  static async create(uri: vscode.Uri, backupId?: string): Promise<StormDocument> {
+    const source = backupId ? vscode.Uri.parse(backupId) : uri;
+    const data = await vscode.workspace.fs.readFile(source);
+    return new StormDocument(uri, utf8.decode(data));
+  }
+
+  constructor(
+    readonly uri: vscode.Uri,
+    public content: string,
+  ) {}
+
+  dispose() {}
+}
+
+class StormEditorProvider implements vscode.CustomEditorProvider<StormDocument> {
   private readonly webviews = new Map<string, vscode.Webview>();
+  private readonly documents = new Map<string, StormDocument>();
+  private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<
+    vscode.CustomDocumentContentChangeEvent<StormDocument>
+  >();
+  readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument.event;
 
   webviewFor(uri: vscode.Uri): vscode.Webview | undefined {
     return this.webviews.get(uri.toString());
   }
 
-  async resolveCustomTextEditor(
-    document: vscode.TextDocument,
+  contentFor(uri: vscode.Uri): string | undefined {
+    return this.documents.get(uri.toString())?.content;
+  }
+
+  async openCustomDocument(
+    uri: vscode.Uri,
+    openContext: vscode.CustomDocumentOpenContext,
+  ): Promise<StormDocument> {
+    const document = await StormDocument.create(uri, openContext.backupId);
+    this.documents.set(uri.toString(), document);
+    return document;
+  }
+
+  async resolveCustomEditor(
+    document: StormDocument,
     webviewPanel: vscode.WebviewPanel,
   ): Promise<void> {
     webviewPanel.webview.options = { enableScripts: true };
-    webviewPanel.webview.html = editorHtml(document, webviewPanel.webview);
+    try {
+      webviewPanel.webview.html = editorHtml(document.content, webviewPanel.webview);
+    } catch (error) {
+      const message = error instanceof Error ? error.stack ?? error.message : String(error);
+      webviewPanel.webview.html = `<!DOCTYPE html><html><body><pre>${escapeHtml(message)}</pre></body></html>`;
+    }
     this.webviews.set(document.uri.toString(), webviewPanel.webview);
-
-    const change = vscode.workspace.onDidChangeTextDocument((event) => {
-      if (event.document.uri.toString() !== document.uri.toString()) return;
-      void webviewPanel.webview.postMessage({
-        type: "update",
-        text: event.document.getText(),
-        board: renderStormDocument(event.document.getText(), "storm"),
-      });
-    });
 
     webviewPanel.webview.onDidReceiveMessage((message: { type?: string; text?: string }) => {
       if (message.type === "exportSvg") {
-        void exportBoardImage(document.uri, "svg", document);
+        void exportBoardImage(document.uri, "svg");
         return;
       }
       if (message.type === "exportPng") {
-        void exportBoardImage(document.uri, "png", document);
+        void exportBoardImage(document.uri, "png");
         return;
       }
       if (message.type !== "edit" || typeof message.text !== "string") return;
-      const last = document.lineAt(Math.max(document.lineCount - 1, 0));
-      const range = new vscode.Range(new vscode.Position(0, 0), last.range.end);
-      const edit = new vscode.WorkspaceEdit();
-      edit.replace(document.uri, range, message.text);
-      void vscode.workspace.applyEdit(edit);
+      document.content = message.text;
+      this._onDidChangeCustomDocument.fire({ document });
+      try {
+        void webviewPanel.webview.postMessage({
+          type: "update",
+          board: renderStormDocument(document.content, "storm"),
+        });
+      } catch {
+        /* keep the last board if a render fails */
+      }
     });
 
     webviewPanel.onDidDispose(() => {
       this.webviews.delete(document.uri.toString());
-      change.dispose();
+      this.documents.delete(document.uri.toString());
     });
+  }
+
+  saveCustomDocument(document: StormDocument): Thenable<void> {
+    return vscode.workspace.fs.writeFile(document.uri, utf8Out.encode(document.content)).then(() => undefined);
+  }
+
+  saveCustomDocumentAs(document: StormDocument, destination: vscode.Uri): Thenable<void> {
+    return vscode.workspace.fs.writeFile(destination, utf8Out.encode(document.content)).then(() => undefined);
+  }
+
+  async revertCustomDocument(document: StormDocument): Promise<void> {
+    const fresh = await StormDocument.create(document.uri);
+    document.content = fresh.content;
+    const webview = this.webviews.get(document.uri.toString());
+    if (!webview) return;
+    void webview.postMessage({
+      type: "update",
+      text: document.content,
+      board: renderStormDocument(document.content, "storm"),
+    });
+  }
+
+  async backupCustomDocument(
+    document: StormDocument,
+    context: vscode.CustomDocumentBackupContext,
+  ): Promise<vscode.CustomDocumentBackup> {
+    await vscode.workspace.fs.writeFile(context.destination, utf8Out.encode(document.content));
+    return {
+      id: context.destination.toString(),
+      delete: async () => {
+        try {
+          await vscode.workspace.fs.delete(context.destination);
+        } catch {
+          /* backup already gone */
+        }
+      },
+    };
   }
 }
 
-function editorHtml(document: vscode.TextDocument, webview: vscode.Webview): string {
+function editorHtml(text: string, webview: vscode.Webview): string {
   const nonce = nonceValue();
   const payload = {
-    text: document.getText(),
-    board: renderStormDocument(document.getText(), "storm"),
+    text,
+    board: renderStormDocument(text, "storm"),
   };
   return `<!DOCTYPE html>
 <html>
@@ -210,10 +269,10 @@ function editorHtml(document: vscode.TextDocument, webview: vscode.Webview): str
       .eventstorm-error { margin: 16px; padding: 12px 14px; background: #2a1f1f; color: #f3c6c6; border: 1px solid #6b3a3a; white-space: pre-wrap; font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
     </style>
   </head>
-  <body>
+  <body class="is-board">
     <div class="bar">
-      <button type="button" id="btn-split" class="is-on">Split</button>
-      <button type="button" id="btn-board">Board</button>
+      <button type="button" id="btn-split">Split</button>
+      <button type="button" id="btn-board" class="is-on">Board</button>
       <span class="spacer"></span>
       <button type="button" id="btn-svg">SVG</button>
       <button type="button" id="btn-png">PNG</button>
@@ -267,7 +326,7 @@ function editorHtml(document: vscode.TextDocument, webview: vscode.Webview): str
         applyView();
       }
 
-      const initial = ${JSON.stringify(payload)};
+      const initial = ${JSON.stringify(payload).replace(/</g, "\\u003c")};
       source.value = initial.text;
       setBoard(initial.board);
 
@@ -346,6 +405,14 @@ ${rasterizeClientScript()}
     </script>
   </body>
 </html>`;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function nonceValue(): string {
@@ -493,12 +560,15 @@ async function exportBoardImage(
   format: "svg" | "png",
   already?: vscode.TextDocument,
 ): Promise<void> {
-  const doc = already ?? (await resolveExportDocument(uri));
-  if (!doc) {
+  const sourceUri = already?.uri ?? uri ?? activeStormUri() ?? vscode.window.activeTextEditor?.document.uri;
+  if (!sourceUri) {
     void vscode.window.showInformationMessage("Open a Markdown or .storm file first.");
     return;
   }
-  const sources = stormSources(doc.getText(), fileKind(doc));
+  const { text, kind } = already
+    ? { text: already.getText(), kind: fileKind(already) }
+    : await readExportSource(sourceUri);
+  const sources = stormSources(text, kind);
   if (sources.length === 0) {
     void vscode.window.showErrorMessage("No EventStorm board in this file.");
     return;
@@ -510,7 +580,7 @@ async function exportBoardImage(
   }
   const name = `${slug(compiled.title)}.${format}`;
   const defaultUri =
-    doc.uri.scheme === "untitled" ? vscode.Uri.file(name) : vscode.Uri.joinPath(doc.uri, "..", name);
+    sourceUri.scheme === "untitled" ? vscode.Uri.file(name) : vscode.Uri.joinPath(sourceUri, "..", name);
   const target = await vscode.window.showSaveDialog({
     defaultUri,
     filters: format === "svg" ? { SVG: ["svg"] } : { PNG: ["png"] },
@@ -521,7 +591,7 @@ async function exportBoardImage(
     const bytes =
       format === "svg"
         ? new TextEncoder().encode(compiled.svg)
-        : await rasterizePng(compiled.svg, doc.uri);
+        : await rasterizePng(compiled.svg, sourceUri);
     await vscode.workspace.fs.writeFile(target, bytes);
     void vscode.window.showInformationMessage(`Saved ${target.path.split("/").pop()}`);
   } catch (error) {
@@ -530,25 +600,16 @@ async function exportBoardImage(
   }
 }
 
-async function resolveExportDocument(uri?: vscode.Uri): Promise<vscode.TextDocument | undefined> {
-  if (uri) {
-    return (
-      vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString()) ??
-      vscode.workspace.openTextDocument(uri)
-    );
+async function readExportSource(uri: vscode.Uri): Promise<{ text: string; kind: "markdown" | "storm" }> {
+  if (uri.path.endsWith(".storm")) {
+    const live = stormEditor?.contentFor(uri);
+    if (typeof live === "string") return { text: live, kind: "storm" };
+    return { text: utf8.decode(await vscode.workspace.fs.readFile(uri)), kind: "storm" };
   }
-  const active = vscode.window.activeTextEditor?.document;
-  if (active && (isStormFile(active) || active.languageId === "markdown" || active.fileName.endsWith(".md"))) {
-    return active;
-  }
-  const stormUri = activeStormUri();
-  if (stormUri) {
-    return (
-      vscode.workspace.textDocuments.find((d) => d.uri.toString() === stormUri.toString()) ??
-      vscode.workspace.openTextDocument(stormUri)
-    );
-  }
-  return undefined;
+  const doc =
+    vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString()) ??
+    (await vscode.workspace.openTextDocument(uri));
+  return { text: doc.getText(), kind: fileKind(doc) };
 }
 
 function rasterWebview(uri: vscode.Uri): vscode.Webview | undefined {
