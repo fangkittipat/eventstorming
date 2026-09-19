@@ -25,7 +25,6 @@ const samples = [
 
 const editorRoot = document.querySelector<HTMLElement>("#editor")!;
 const boardEl = document.querySelector<HTMLElement>("#board")!;
-const boardSizer = document.querySelector<HTMLElement>("#board-sizer")!;
 const viewport = document.querySelector<HTMLElement>("#board-viewport")!;
 const statusEl = document.querySelector<HTMLElement>("#status")!;
 const sampleSelect = document.querySelector<HTMLSelectElement>("#sample-select")!;
@@ -33,6 +32,9 @@ const splitter = document.querySelector<HTMLElement>("#splitter")!;
 const editorPane = document.querySelector<HTMLElement>(".editor-pane")!;
 
 let zoom = 1;
+let panX = 28;
+let panY = 28;
+let didPan = false;
 let lastSvg = "";
 let lastTitle = "eventstorm";
 let activeId: string | undefined;
@@ -123,6 +125,10 @@ function pulseFromCursor() {
 
 function bindBoardClicks() {
   boardEl.addEventListener("click", (event) => {
+    if (didPan) {
+      didPan = false;
+      return;
+    }
     const target = (event.target as Element).closest("[data-line]");
     if (!target) return;
     const line = Number(target.getAttribute("data-line"));
@@ -148,9 +154,13 @@ function bindToolbar() {
     await navigator.clipboard.writeText(url);
     statusEl.textContent = "Share URL copied";
   });
-  document.querySelector("#btn-zoom-in")!.addEventListener("click", () => setZoom(zoom + 0.1));
-  document.querySelector("#btn-zoom-out")!.addEventListener("click", () => setZoom(zoom - 0.1));
-  document.querySelector("#btn-zoom-reset")!.addEventListener("click", () => setZoom(1));
+  document.querySelector("#btn-zoom-in")!.addEventListener("click", () => zoomAt(zoom + 0.1));
+  document.querySelector("#btn-zoom-out")!.addEventListener("click", () => zoomAt(zoom - 0.1));
+  document.querySelector("#btn-zoom-reset")!.addEventListener("click", () => {
+    panX = 28;
+    panY = 28;
+    setZoom(1);
+  });
   sampleSelect.addEventListener("change", () => {
     const sample = samples.find((s) => s.id === sampleSelect.value);
     if (!sample) return;
@@ -184,21 +194,29 @@ function bindPan() {
   let panning = false;
   let startX = 0;
   let startY = 0;
-  let sl = 0;
-  let st = 0;
+  let originX = 0;
+  let originY = 0;
+
   viewport.addEventListener("mousedown", (event) => {
-    if ((event.target as Element).closest(".sticky")) return;
+    if (event.button !== 0) return;
+    event.preventDefault();
     panning = true;
-    viewport.classList.add("is-panning");
+    didPan = false;
     startX = event.clientX;
     startY = event.clientY;
-    sl = viewport.scrollLeft;
-    st = viewport.scrollTop;
+    originX = panX;
+    originY = panY;
   });
   window.addEventListener("mousemove", (event) => {
     if (!panning) return;
-    viewport.scrollLeft = sl - (event.clientX - startX);
-    viewport.scrollTop = st - (event.clientY - startY);
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (!didPan && dx * dx + dy * dy < 25) return;
+    didPan = true;
+    viewport.classList.add("is-panning");
+    panX = originX + dx;
+    panY = originY + dy;
+    applyZoom();
   });
   window.addEventListener("mouseup", () => {
     panning = false;
@@ -207,12 +225,30 @@ function bindPan() {
   viewport.addEventListener(
     "wheel",
     (event) => {
-      if (!event.metaKey && !event.ctrlKey) return;
       event.preventDefault();
-      setZoom(zoom + (event.deltaY < 0 ? 0.08 : -0.08));
+      if (event.ctrlKey || event.metaKey) {
+        const rect = viewport.getBoundingClientRect();
+        zoomAt(zoom * Math.exp(-event.deltaY * 0.01), event.clientX - rect.left, event.clientY - rect.top);
+        return;
+      }
+      panX -= event.deltaX;
+      panY -= event.deltaY;
+      applyZoom();
     },
     { passive: false },
   );
+}
+
+function zoomAt(next: number, cx?: number, cy?: number) {
+  const rect = viewport.getBoundingClientRect();
+  const x = cx ?? rect.width / 2;
+  const y = cy ?? rect.height / 2;
+  const boardX = (x - panX) / zoom;
+  const boardY = (y - panY) / zoom;
+  const clamped = Math.min(2.2, Math.max(0.4, next));
+  panX = x - boardX * clamped;
+  panY = y - boardY * clamped;
+  setZoom(clamped);
 }
 
 function setZoom(next: number) {
@@ -222,12 +258,7 @@ function setZoom(next: number) {
 }
 
 function applyZoom() {
-  const svg = boardEl.querySelector("svg");
-  const width = Number(svg?.getAttribute("width") ?? 960);
-  const height = Number(svg?.getAttribute("height") ?? 420);
-  boardEl.style.transform = `scale(${zoom})`;
-  boardSizer.style.width = `${width * zoom + 56}px`;
-  boardSizer.style.height = `${height * zoom + 56}px`;
+  boardEl.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
 }
 
 function syncSampleSelect(source: string) {

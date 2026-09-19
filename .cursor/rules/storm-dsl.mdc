@@ -1,0 +1,13 @@
+---
+description: Storm DSL for EventStorming boards — write .storm or ```eventstorm fences, not Mermaid.
+globs: "**/*.{storm,md}"
+alwaysApply: true
+---
+
+When the user wants a process, workflow, or EventStorming board, write **Storm DSL** (this repo), not Mermaid.
+
+- Files: `*.storm` or a markdown ` ```eventstorm ` / ` ```storm ` fence
+- Flow: `read` → `actor` → `command` → `system` → `event`
+- `policy auto` or `policy person` (then `actor`) after events; parallel reactions are consecutive `branch` blocks
+- `hotspot` for open questions; `value+` / `value-` on the sticky above
+- See `.cursor/skills/eventstorm/SKILL.md` and `samples/*.storm`

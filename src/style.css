@@ -170,8 +170,10 @@ html, body, #app {
 
 .board-viewport {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   cursor: grab;
+  position: relative;
+  user-select: none;
 }
 
 .board-viewport.is-panning {
@@ -179,7 +181,8 @@ html, body, #app {
 }
 
 #board-sizer {
-  padding: 28px;
+  width: 100%;
+  height: 100%;
 }
 
 .board {

@@ -4,8 +4,23 @@ import { colors, layout as L } from "./colors";
 
 const FONT = "ui-sans-serif, system-ui, sans-serif";
 
-export function renderBoard(board: BoardLayout, activeId?: string): string {
-  const legend = renderLegend();
+export interface RenderBoardOptions {
+  activeId?: string;
+  idPrefix?: string;
+  xmlHeader?: boolean;
+}
+
+interface SvgIds {
+  shadow: string;
+  shadowActive: string;
+  arrow: string;
+}
+
+export function renderBoard(board: BoardLayout, options: RenderBoardOptions = {}): string {
+  const activeId = options.activeId;
+  const ids = svgIds(options.idPrefix ?? "es");
+  const header = options.xmlHeader === false ? "" : `<?xml version="1.0" encoding="UTF-8"?>\n`;
+  const legend = renderLegend(ids);
   const labels = board.labels
     .map(
       (label) =>
@@ -15,17 +30,16 @@ export function renderBoard(board: BoardLayout, activeId?: string): string {
 
   const arrows = board.arrows.map(renderArrow).join("");
   const stickies = board.stickies
-    .map((s) => renderSticky(s, s.sticky.id === activeId))
+    .map((s) => renderSticky(s, s.sticky.id === activeId, ids))
     .join("");
 
   const note = board.note
     ? `<text x="${L.margin}" y="64" font-family="${FONT}" font-size="12" fill="${colors.muted}">${esc(board.note)}</text>`
     : "";
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${board.width} ${board.height}" width="${board.width}" height="${board.height}" role="img" aria-label="${esc(board.title)}">
+  return `${header}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${board.width} ${board.height}" width="${board.width}" height="${board.height}" role="img" aria-label="${esc(board.title)}">
   <defs>
-    <filter id="sticky-shadow" x="-50%" y="-50%" width="200%" height="220%">
+    <filter id="${ids.shadow}" x="-50%" y="-50%" width="200%" height="220%">
       <feOffset in="SourceAlpha" dx="1.2" dy="4.5" result="off"/>
       <feGaussianBlur in="off" stdDeviation="3.2" result="blur"/>
       <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.22 0" result="shadow"/>
@@ -34,7 +48,7 @@ export function renderBoard(board: BoardLayout, activeId?: string): string {
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    <filter id="sticky-shadow-active" x="-50%" y="-50%" width="200%" height="220%">
+    <filter id="${ids.shadowActive}" x="-50%" y="-50%" width="200%" height="220%">
       <feOffset in="SourceAlpha" dx="1.4" dy="5" result="off"/>
       <feGaussianBlur in="off" stdDeviation="3.6" result="blur"/>
       <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.3 0" result="shadow"/>
@@ -43,7 +57,7 @@ export function renderBoard(board: BoardLayout, activeId?: string): string {
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    <marker id="storm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+    <marker id="${ids.arrow}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#1c1c1c"/>
     </marker>
   </defs>
@@ -52,12 +66,20 @@ export function renderBoard(board: BoardLayout, activeId?: string): string {
   ${note}
   ${legend}
   ${labels}
-  <g fill="none" stroke="#1c1c1c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#storm-arrow)">${arrows}</g>
+  <g fill="none" stroke="#1c1c1c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#${ids.arrow})">${arrows}</g>
   ${stickies}
 </svg>`;
 }
 
-function renderLegend(): string {
+function svgIds(prefix: string): SvgIds {
+  return {
+    shadow: `${prefix}-sticky-shadow`,
+    shadowActive: `${prefix}-sticky-shadow-active`,
+    arrow: `${prefix}-storm-arrow`,
+  };
+}
+
+function renderLegend(ids: SvgIds): string {
   const items: Array<{ kind: StickyKind; label: string }> = [
     { kind: "actor", label: "Actor" },
     { kind: "command", label: "Command" },
@@ -72,7 +94,7 @@ function renderLegend(): string {
   const parts = items.map((item) => {
     const c = colors[item.kind];
     const node = `<g>
-      <rect x="${x}" y="${y}" width="14" height="14" fill="${c.fill}" filter="url(#sticky-shadow)"/>
+      <rect x="${x}" y="${y}" width="14" height="14" fill="${c.fill}" filter="url(#${ids.shadow})"/>
       <text x="${x + 20}" y="${y + 11}" font-family="${FONT}" font-size="11" fill="${colors.ink}">${item.label}</text>
     </g>`;
     x += 24 + item.label.length * 6.6;
@@ -90,14 +112,14 @@ function renderArrow(a: Arrow): string {
   return `<path d="M${a.x1} ${a.y1} C${a.x1 + pull} ${a.y1}, ${a.x2 - pull} ${a.y2}, ${a.x2} ${a.y2}"/>`;
 }
 
-function renderSticky(placed: PlacedSticky, active: boolean): string {
+function renderSticky(placed: PlacedSticky, active: boolean, ids: SvgIds): string {
   const { sticky, x, y, w, h, fontSize, lines, captionLines } = placed;
   const theme = colors[sticky.kind];
   const cx = x + w / 2;
   const cy = y + h / 2;
   const angle = tilt(sticky.id, sticky.kind);
   const activeClass = active ? " is-active" : "";
-  const filter = active ? "url(#sticky-shadow-active)" : "url(#sticky-shadow)";
+  const filter = active ? `url(#${ids.shadowActive})` : `url(#${ids.shadow})`;
   const lineHeight = fontSize + 4;
 
   const policyTag =
@@ -125,7 +147,7 @@ function renderSticky(placed: PlacedSticky, active: boolean): string {
     )
     .join("");
 
-  const value = sticky.value ? renderValue(placed) : "";
+  const value = sticky.value ? renderValue(placed, ids) : "";
 
   return `<g class="sticky${activeClass}" data-id="${sticky.id}" data-line="${sticky.line}" cursor="pointer" transform="rotate(${angle} ${cx} ${cy})">
     <rect class="note" x="${x}" y="${y}" width="${w}" height="${h}" fill="${theme.fill}" filter="${filter}"/>
@@ -133,7 +155,7 @@ function renderSticky(placed: PlacedSticky, active: boolean): string {
   </g>`;
 }
 
-function renderValue(placed: PlacedSticky): string {
+function renderValue(placed: PlacedSticky, ids: SvgIds): string {
   const mark = placed.sticky.value;
   if (!mark) return "";
   const theme = mark.sign === "+" ? colors.valuePlus : colors.valueMinus;
@@ -143,7 +165,7 @@ function renderValue(placed: PlacedSticky): string {
   const y = placed.y + placed.h - 10;
   const label = `${mark.sign === "+" ? "+" : "−"} ${mark.label}`;
   return `<g data-line="${mark.line}" transform="rotate(4 ${x + w / 2} ${y + h / 2})">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${theme.fill}" filter="url(#sticky-shadow)"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${theme.fill}" filter="url(#${ids.shadow})"/>
     <text x="${x + w / 2}" y="${y + 15}" font-family="${FONT}" font-size="10" font-weight="700" fill="${theme.text}" text-anchor="middle">${esc(label)}</text>
   </g>`;
 }

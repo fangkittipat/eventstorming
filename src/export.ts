@@ -1,3 +1,5 @@
+import { slug } from "./slug";
+
 export function download(filename: string, contents: Blob) {
   const url = URL.createObjectURL(contents);
   const a = document.createElement("a");
@@ -48,14 +50,4 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
       else resolve(blob);
     }, "image/png");
   });
-}
-
-function slug(title: string): string {
-  return (
-    title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 60) || "eventstorm"
-  );
 }

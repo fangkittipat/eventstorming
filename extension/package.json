@@ -1,0 +1,145 @@
+{
+  "name": "eventstorm",
+  "displayName": "EventStorm",
+  "description": "Open .storm files like .mmd: source beside a live paper-note board. Also renders ```eventstorm fences in Markdown preview.",
+  "version": "0.1.6",
+  "publisher": "fangkittipat",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages", "Visualization"],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:**/*.storm",
+    "onLanguage:markdown",
+    "onLanguage:eventstorm",
+    "onCustomEditor:eventstorm.boardEditor",
+    "onCommand:eventstorm.preview",
+    "onCommand:eventstorm.previewBoard",
+    "onCommand:eventstorm.openSource",
+    "onCommand:eventstorm.exportSvg",
+    "onCommand:eventstorm.exportPng"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configurationDefaults": {
+      "files.associations": {
+        "*.storm": "eventstorm"
+      },
+      "workbench.editorAssociations": {
+        "*.storm": "eventstorm.boardEditor"
+      }
+    },
+    "markdown.markdownItPlugins": true,
+    "markdown.previewStyles": ["./preview.css"],
+    "customEditors": [
+      {
+        "viewType": "eventstorm.boardEditor",
+        "displayName": "EventStorm",
+        "selector": [{ "filenamePattern": "*.storm" }],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "eventstorm.preview",
+        "title": "Open Preview",
+        "category": "EventStorm",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "eventstorm.openSource",
+        "title": "Open Source",
+        "category": "EventStorm"
+      },
+      {
+        "command": "eventstorm.previewBoard",
+        "title": "Open Board Only",
+        "category": "EventStorm"
+      },
+      {
+        "command": "eventstorm.exportSvg",
+        "title": "Export SVG",
+        "category": "EventStorm",
+        "icon": "$(export)"
+      },
+      {
+        "command": "eventstorm.exportPng",
+        "title": "Export PNG",
+        "category": "EventStorm",
+        "icon": "$(file-media)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "eventstorm.preview",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm",
+          "group": "navigation"
+        },
+        {
+          "command": "eventstorm.openSource",
+          "when": "resourceExtname == .storm || activeCustomEditorId == eventstorm.boardEditor",
+          "group": "navigation"
+        },
+        {
+          "command": "eventstorm.exportSvg",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm || activeCustomEditorId == eventstorm.boardEditor",
+          "group": "navigation"
+        },
+        {
+          "command": "eventstorm.exportPng",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm || activeCustomEditorId == eventstorm.boardEditor",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "eventstorm.preview",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown"
+        },
+        {
+          "command": "eventstorm.openSource",
+          "when": "resourceExtname == .storm || activeCustomEditorId == eventstorm.boardEditor"
+        },
+        {
+          "command": "eventstorm.previewBoard",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown"
+        },
+        {
+          "command": "eventstorm.exportSvg",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm || activeCustomEditorId == eventstorm.boardEditor"
+        },
+        {
+          "command": "eventstorm.exportPng",
+          "when": "resourceExtname == .md || resourceExtname == .storm || editorLangId == markdown || editorLangId == eventstorm || activeCustomEditorId == eventstorm.boardEditor"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "eventstorm.preview",
+          "when": "resourceExtname == .storm",
+          "group": "navigation"
+        },
+        {
+          "command": "eventstorm.exportSvg",
+          "when": "resourceExtname == .storm || resourceExtname == .md",
+          "group": "navigation"
+        },
+        {
+          "command": "eventstorm.exportPng",
+          "when": "resourceExtname == .storm || resourceExtname == .md",
+          "group": "navigation"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "eventstorm",
+        "aliases": ["EventStorm", "storm"],
+        "extensions": [".storm"]
+      }
+    ]
+  }
+}

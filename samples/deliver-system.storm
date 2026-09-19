@@ -1,0 +1,54 @@
+eventstorming "Deliver order"
+note "From a packed order to a delivered (or failed) shipment."
+
+path "delivered on first attempt"
+  read "Packed orders" : "ready to ship"
+  actor Dispatcher
+  command "Schedule delivery"
+  system Shipping
+  event "Delivery scheduled"
+
+  policy auto "Delivery scheduled" : "assign courier"
+  command "Assign courier"
+  system Shipping
+  event "Courier assigned"
+
+  actor Courier
+  command "Start delivery"
+  system Shipping
+  event "Delivery started"
+
+  read "Delivery address" : "confirm recipient"
+  actor Courier
+  command "Deliver package"
+  system Shipping
+  event "Package delivered"
+  value+ Customer
+  value+ Courier
+
+path "recipient not available"
+  actor Courier
+  command "Deliver package"
+  system Shipping
+  read "Recipient presence" : "decide next step"
+  branch
+    none "nothing happened"
+    event "Delivery attempt failed"
+    policy auto "Delivery attempt failed" : "reschedule"
+    command "Reschedule delivery"
+    system Shipping
+    event "Delivery rescheduled"
+    hotspot "How many reattempts before returning to sender?"
+    value- Customer
+
+path "package lost in transit"
+  policy person "Delivery overdue" : "investigate"
+  actor "Support agent"
+  command "Report lost package"
+  system Shipping
+  event "Package reported lost"
+  policy auto "Package reported lost" : "start refund"
+  command "Issue refund"
+  system Billing
+  event "Refund issued"
+  value- Customer
